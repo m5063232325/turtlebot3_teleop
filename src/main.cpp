@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include "ros/ros.h"
 #include <geometry_msgs/Twist.h>
+#include <wiringPi.h>
 
 #define AUTO_MODE 0
 #define MANUAL_MODE 1
@@ -94,6 +95,8 @@ int main(int argc, char** argv) {
     int mode = MANUAL_MODE;
     system("clear");
     cout << welcome_messenge << endl;
+    wiringPiSetup();
+    pinMode(0, INPUT);
     float target_linear_vel = 0.0;
     float target_angular_vel = 0.0;
     float control_linear_vel = 0.0;
@@ -106,7 +109,7 @@ int main(int argc, char** argv) {
 
 
     char key;
-    while (ros::ok()){
+    while (true){
         if(kbhit()){
             key = getchar();
             if(mode == MANUAL_MODE){
@@ -166,6 +169,16 @@ int main(int argc, char** argv) {
         else{
             if(mode == AUTO_MODE){
                 /* turtlebot's code */
+		// while(true){
+
+		if(digitalRead(0) == 1){
+		    // no bumper
+		    target_linear_vel = 0.2;
+		}
+		else{
+		    //bumper on
+		    cout << "Bumper on!" << endl;
+		}
             }
         }
         geometry_msgs::Twist msg;
@@ -175,7 +188,7 @@ int main(int argc, char** argv) {
         msg.angular.x = 0.0; msg.angular.y = 0.0; msg.angular.z = control_angular_vel;
         pub.publish(msg);
 
-        ros::spinOnce();
+	// ros::spinOnce();
     }
 
     return 0;
